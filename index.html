@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CODEFORGE Memory - Neon Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            text-align: center;
+            padding: 30px;
+            background: rgba(20, 20, 40, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            border: 2px solid #00ffff;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: #00ffff;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .stat-box {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 1px solid #00ffff;
+            flex: 1;
+        }
+
+        .stat-label {
+            color: #00ffff;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            color: #00ff00;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .card {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #1a1a3e, #2a2a5e);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            border-color: #ff00ff;
+        }
+
+        .card.flipped {
+            background: linear-gradient(135deg, #00ffff, #00ff88);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            border-color: #00ff00;
+        }
+
+        .card.matched {
+            background: linear-gradient(135deg, #00ff00, #00ffff);
+            border-color: #00ff00;
+            cursor: default;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.8);
+        }
+
+        .card.matched:hover {
+            transform: none;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: 2px solid #00ffff;
+            background: rgba(0, 255, 255, 0.1);
+            color: #00ffff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: #00ffff;
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .message {
+            font-size: 1.5em;
+            margin-top: 20px;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            min-height: 30px;
+        }
+
+        .winner {
+            color: #ffff00;
+            text-shadow: 0 0 15px rgba(255, 255, 0, 0.8);
+            animation: pulse 0.6s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .footer {
+            margin-top: 20px;
+            color: #888;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 CODEFORGE MEMORY 🎮</h1>
+        <p class="subtitle">Click cards to find matching pairs!</p>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Moves</div>
+                <div class="stat-value" id="moves">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Matched</div>
+                <div class="stat-value" id="matched">0/8</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Time</div>
+                <div class="stat-value" id="time">0s</div>
+            </div>
+        </div>
+
+        <div class="game-board" id="gameBoard"></div>
+
+        <div class="message" id="message"></div>
+
+        <div class="buttons">
+            <button onclick="initGame()">New Game</button>
+            <button onclick="resetGame()">Reset</button>
+        </div>
+
+        <div class="footer">
+            <p>Made with ❤️ by Tanuj Bhatt | Web Developer</p>
+        </div>
+    </div>
+
+    <script>
+        const symbols = ['🎮', '💻', '🚀', '⚡', '🎯', '🌟', '💡', '🔥'];
+        let cards = [];
+        let flipped = [];
+        let matched = [];
+        let moves = 0;
+        let time = 0;
+        let gameActive = true;
+        let timerInterval;
+
+        function initGame() {
+            cards = [...symbols, ...symbols].sort(() => Math.random() - 0.5);
+            flipped = [];
+            matched = [];
+            moves = 0;
+            time = 0;
+            gameActive = true;
+            document.getElementById('message').textContent = '';
+            document.getElementById('message').classList.remove('winner');
+            clearInterval(timerInterval);
+            renderBoard();
+            startTimer();
+        }
+
+        function renderBoard() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+
+            cards.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.classList.add('card');
+                
+                if (flipped.includes(index) || matched.includes(index)) {
+                    cardEl.textContent = card;
+                    cardEl.classList.add('flipped');
+                }
+
+                if (matched.includes(index)) {
+                    cardEl.classList.add('matched');
+                }
+
+                cardEl.onclick = () => clickCard(index);
+                gameBoard.appendChild(cardEl);
+            });
+        }
+
+        function clickCard(index) {
+            if (!gameActive || flipped.includes(index) || matched.includes(index)) return;
+
+            flipped.push(index);
+            renderBoard();
+
+            if (flipped.length === 2) {
+                moves++;
+                document.getElementById('moves').textContent = moves;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [first, second] = flipped;
+
+            if (cards[first] === cards[second]) {
+                matched.push(first, second);
+                flipped = [];
+                document.getElementById('matched').textContent = `${matched.length / 2}/8`;
+                renderBoard();
+
+                if (matched.length === cards.length) {
+                    endGame();
+                }
+            } else {
+                setTimeout(() => {
+                    flipped = [];
+                    renderBoard();
+                }, 800);
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            const msg = document.getElementById('message');
+            msg.textContent = `🎉 YOU WON! 🎉\n${moves} moves in ${time}s`;
+            msg.classList.add('winner');
+        }
+
+        function resetGame() {
+            clearInterval(timerInterval);
+            initGame();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                time++;
+                document.getElementById('time').textContent = time + 's';
+            }, 1000);
+        }
+
+        // Start game on load
+        window.onload = () => {
+            initGame();
+        };
+    </script>
+</body>
+</html>
